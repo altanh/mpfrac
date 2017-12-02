@@ -53,35 +53,58 @@ Mandelbrot::~Mandelbrot() {
         delete[] _data;
 }
 
-void Mandelbrot::run() {
+void Mandelbrot::_runChunk(Mandelbrot *m, unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
+    const Real FOUR("4");
+    const Real DELTA_RE = m->_viewport.size.re / Real(m->_width);
+    const Real DELTA_IM = m->_viewport.size.im / Real(m->_height);
+
+    for(unsigned int j = y; j < height + y; ++j) {
+        for(unsigned int i = x; i < width + x; ++i) {
+            const unsigned int index = j * m->_width + i;
+            const Complex c = m->_viewport.topLeft + Complex(DELTA_RE * Real(i),
+                                                             DELTA_IM.neg() * Real(j));
+
+            Complex z(Real::ZERO, Real::ZERO);
+
+            m->_data[index].inSet = true;
+
+            for(unsigned int iter = 0; iter < m->_iterMax; ++iter) {
+                z = z * z + c;
+
+                if(z.re * z.re + z.im * z.im > FOUR) {
+                    m->_data[index].iter = iter;
+                    m->_data[index].inSet = false;
+                }
+            }
+        }
+    }
+}
+
+void Mandelbrot::run(unsigned int threadCount) {
     if(_data)
         delete[] _data;
 
     _data = new MandelbrotData[_width * _height];
 
-    const Real FOUR("4");
-    const Real DELTA_RE = _viewport.size.re / Real(_width);
-    const Real DELTA_IM = _viewport.size.im / Real(_height);
+    unsigned int chunkHeight = _height / threadCount;
+    unsigned int chunkRemainder = _height % threadCount;
 
-    for(unsigned int j = 0; j < _height; ++j) {
-        for(unsigned int i = 0; i < _width; ++i) {
-            const unsigned int index = j * _width + i;
-            const Complex c = _viewport.topLeft + Complex(DELTA_RE * Real(i),
-                                                          DELTA_IM.neg() * Real(j));
+    std::vector<std::thread> threads;
 
-            Complex z(Real::ZERO, Real::ZERO);
+    std::cout << "-- running with " << threadCount << " threads" << std::endl;
+    std::cout << "\tchunkHeight = " << chunkHeight << std::endl
+              << "\tchunkRemainder = " << chunkRemainder << std::endl;
 
-            _data[index].inSet = true;
-
-            for(unsigned int iter = 0; iter < _iterMax; ++iter) {
-                z = z * z + c;
-
-                if(z.re * z.re + z.im * z.im > FOUR) {
-                    _data[index].iter = iter;
-                    _data[index].inSet = false;
-                }
-            }
+    for(unsigned int i = 0; i < threadCount; ++i) {
+        if(i == threadCount - 1) {
+            threads.emplace_back(_runChunk, this, 0, i * chunkHeight, _width, chunkHeight + chunkRemainder);
+        } else {
+            threads.emplace_back(_runChunk, this, 0, i * chunkHeight, _width, chunkHeight);
         }
+    }
+
+    for(unsigned int i = 0; i < threadCount; ++i) {
+        threads[i].join();
     }
 }
 

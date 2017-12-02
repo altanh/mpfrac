@@ -2,6 +2,9 @@
 #define MANDELBROT_H
 
 #include <iostream>
+#include <vector>
+#include <thread>
+
 #include "complex.h"
 
 struct Viewport {
@@ -24,6 +27,8 @@ class Mandelbrot {
 
     Viewport _viewport;
 
+    static void _runChunk(Mandelbrot *m, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
+
 public:
     Mandelbrot();
     Mandelbrot(unsigned int width, unsigned int height, 
@@ -33,7 +38,7 @@ public:
 
     ~Mandelbrot();
 
-    void run();
+    void run(unsigned int threadCount = 1);
 
     void setViewport(Viewport view);
     const Viewport& getViewport() const;

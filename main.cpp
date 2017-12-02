@@ -17,10 +17,13 @@ struct IterInfo {
 
 int main(int argc, char **argv) {
     mpfr_prec_t precision;
+    unsigned int threads;
     
     std::cout << "multiple-precision fractal generator v0.1 [altanh@uw.edu]" << std::endl;
     std::cout << "\tprecision (bits): ";
     std::cin >> precision;
+    std::cout << "\tthreads: ";
+    std::cin >> threads;
 
     mpfr_set_default_prec(precision);
 
@@ -39,9 +42,9 @@ int main(int argc, char **argv) {
         mandel = Mandelbrot::fromIStream(std::cin);
     }
 
-    mandel.run();
+    mandel.run(threads);
 
-    std::vector<IterInfo> iterCounts;
+    /*std::vector<IterInfo> iterCounts;
 
     for(unsigned int i = 0; i < mandel.getIterMax(); ++i)
         iterCounts.push_back({i, 0});
@@ -85,19 +88,24 @@ int main(int argc, char **argv) {
         }
 
         std::cout << std::endl;
-    }
+    }*/
 
-    Image im(1024, 1024);
+    Image mandelOut(mandel.getWidth(), mandel.getHeight());
 
-    for(unsigned int i = 0; i < 1024; ++i) {
-        for(unsigned int j = 0; j < 1024; ++j) {
-            im.pixels[j * 1024 + i].data[0] = 255;
-            im.pixels[j * 1024 + i].data[1] = 0;
-            im.pixels[j * 1024 + i].data[2] = 255;
+    for(unsigned int j = 0; j < mandel.getHeight(); ++j) {
+        for(unsigned int i = 0; i < mandel.getWidth(); ++i) {
+            mandelOut.pixels[j * mandel.getWidth() + i].data[0] = mandel.getDataAt(i,j).inSet ? 255 : 0;
+            mandelOut.pixels[j * mandel.getWidth() + i].data[1] = 0;
+            mandelOut.pixels[j * mandel.getWidth() + i].data[2] = 0;
         }
     }
 
-    ImageWriter::writePNG(im, "test.png");
+    std::cout << "writing to \"mandel.png\"" << std::endl;
+    if(!ImageWriter::writePNG(mandelOut, "mandel.png")) {
+        std::cerr << "write failed!" << std::endl;
+
+        return -1;
+    }
 
     return 0;
 }
