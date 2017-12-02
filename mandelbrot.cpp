@@ -10,6 +10,44 @@ Mandelbrot::Mandelbrot(unsigned int width, unsigned int height,
 
 }
 
+Mandelbrot Mandelbrot::fromIStream(std::istream &is) {
+    const bool isCin = &is == &std::cin;
+
+    unsigned int width, height, iterMax;
+    std::string viewRe, viewIm, viewWidth, viewHeight;
+
+    std::cout << "\twidth: ";
+    is >> width;
+    if(!isCin) std::cout << width << std::endl;
+
+    std::cout << "\theight: ";
+    is >> height;
+    if(!isCin) std::cout << height << std::endl;
+
+    std::cout << "\titerMax: ";
+    is >> iterMax;
+    if(!isCin) std::cout << iterMax << std::endl;
+
+    std::cout << "\tviewport: " << std::endl << "\t\tre: ";
+    is >> viewRe;
+    if(!isCin) std::cout << viewRe << std::endl;
+
+    std::cout << "\t\tim: ";
+    is >> viewIm;
+    if(!isCin) std::cout << viewIm << std::endl;
+
+    std::cout << "\t\twidth: ";
+    is >> viewWidth;
+    if(!isCin) std::cout << viewWidth << std::endl;
+
+    std::cout << "\t\theight: ";
+    is >> viewHeight;
+    if(!isCin) std::cout << viewHeight << std::endl;
+
+    return Mandelbrot(width, height, 
+            {{Real(viewRe), Real(viewIm)}, {Real(viewWidth), Real(viewHeight)}}, iterMax);
+}
+
 Mandelbrot::~Mandelbrot() {
     if(_data)
         delete[] _data;

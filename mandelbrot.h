@@ -1,6 +1,7 @@
 #ifndef MANDELBROT_H
 #define MANDELBROT_H
 
+#include <iostream>
 #include "complex.h"
 
 struct Viewport {
@@ -27,6 +28,8 @@ public:
     Mandelbrot();
     Mandelbrot(unsigned int width, unsigned int height, 
                Viewport view, unsigned int iterMax);
+
+    static Mandelbrot fromIStream(std::istream &is);
 
     ~Mandelbrot();
 
