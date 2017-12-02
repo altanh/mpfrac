@@ -8,6 +8,7 @@
 #include "real.h"
 #include "complex.h"
 #include "mandelbrot.h"
+#include "image_writer.h"
 
 struct IterInfo {
     unsigned int iter;
@@ -85,6 +86,18 @@ int main(int argc, char **argv) {
 
         std::cout << std::endl;
     }
+
+    Image im(1024, 1024);
+
+    for(unsigned int i = 0; i < 1024; ++i) {
+        for(unsigned int j = 0; j < 1024; ++j) {
+            im.pixels[j * 1024 + i].data[0] = 255;
+            im.pixels[j * 1024 + i].data[1] = 0;
+            im.pixels[j * 1024 + i].data[2] = 255;
+        }
+    }
+
+    ImageWriter::writePNG(im, "test.png");
 
     return 0;
 }
