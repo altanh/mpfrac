@@ -3,26 +3,9 @@
 
 #include "real.h"
 #include "complex.h"
+#include "mandelbrot.h"
 
 #define PRECISION 1024
-#define ITER_MAX 512
-
-bool inMandelbrot(Complex c) {
-    Complex z(Real::ZERO, Real::ZERO);
-
-    const Real FOUR("4");
-
-    for(int i = 0; i < ITER_MAX; ++i) {
-        z = z * z + c;
-
-        Real magSquared = z.re * z.re + z.im * z.im;
-
-        if(magSquared > FOUR)
-            return false;
-    }
-
-    return true;
-}
 
 int main(int argc, char **argv) {
     mpfr_set_default_prec(PRECISION);
@@ -30,16 +13,13 @@ int main(int argc, char **argv) {
     int width = 160;
     int height = 80;
 
-    Complex topLeft(Real("-2"), Real("2"));
+    Mandelbrot mandel(80, 40, {{Real("-2"), Real("2")}, {Real("4"), Real("4")}}, 128);
 
-    for(int j = 0; j < height; ++j) {
-        for(int i = 0; i < width; ++i) {
-            Complex c = topLeft + Complex(Real("4") / Real((double) (width)) * Real((double) i), 
-                                          Real("-4") / Real((double (height))) * Real((double) j));
+    mandel.run();
 
-            bool inSet = inMandelbrot(c);
-
-            std::cout << (inSet ? "*" : " ");
+    for(unsigned int y = 0; y < mandel.getHeight(); ++y) {
+        for(unsigned int x = 0; x < mandel.getWidth(); ++x) {
+            std::cout << (mandel.getDataAt(x,y).inSet ? "*" : " ");
         }
 
         std::cout << std::endl;

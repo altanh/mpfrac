@@ -15,6 +15,7 @@ public:
 
     Real();
     Real(long double d);
+    Real(unsigned int ui);
     Real(std::string str, int base = 10);
     Real(const Real& other);
 

@@ -12,6 +12,10 @@ Real::Real(long double d) {
     mpfr_init_set_d(_val, d, MPFR_RNDN);
 }
 
+Real::Real(unsigned int ui) {
+    mpfr_init_set_ui(_val, ui, MPFR_RNDN);
+}
+
 Real::Real(std::string str, int base) {
     mpfr_init_set_str(_val, str.c_str(), base, MPFR_RNDN);
 }
