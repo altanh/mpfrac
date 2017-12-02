@@ -3,12 +3,11 @@
 #include <fstream>
 #include <vector>
 #include <mpfr.h>
+#include <cmath>
 
 #include "real.h"
 #include "complex.h"
 #include "mandelbrot.h"
-
-#define PRECISION 1024
 
 struct IterInfo {
     unsigned int iter;
@@ -54,6 +53,10 @@ int main(int argc, char **argv) {
 
     std::sort(iterCounts.begin(), iterCounts.end(), [](const IterInfo &a, const IterInfo &b){return a.count > b.count;});
 
+    std::vector<std::string> chars = {
+        "#", "+", "*", "~", "\"", "\'", ":", "`", ".", ","
+    };
+
     for(unsigned int y = 0; y < mandel.getHeight(); ++y) {
         for(unsigned int x = 0; x < mandel.getWidth(); ++x) {
             if(mandel.getDataAt(x,y).inSet) {
@@ -62,28 +65,20 @@ int main(int argc, char **argv) {
                 unsigned int iter = mandel.getDataAt(x,y).iter;
                 int iterIndex = std::distance(iterCounts.begin(), std::find_if(iterCounts.begin(), iterCounts.end(), [&iter](const IterInfo &it){return it.iter == iter;}));
             
-                switch(iterIndex) {
-                    case 0:
-                        std::cout << "#";
-                        break;
-                    case 1:
-                        std::cout << "$";
-                        break;
-                    case 2:
-                        std::cout << "%";
-                        break;
-                    case 3:
-                        std::cout << "^";
-                        break;
-                    case 4:
-                        std::cout << "*";
-                        break;
-                    case 5:
-                        std::cout << ".";
-                        break;
-                    default:
-                        std::cout << "`";
-                        break;
+                if(iterIndex < chars.size())
+                    std::cout << chars[iterIndex];
+                else {
+                    unsigned int closestDiff = mandel.getIterMax();
+                    unsigned int closestIndex = 0;
+                    for(unsigned int i = 0; i < chars.size(); ++i) {
+                        unsigned int diff = std::abs((int)iterCounts[i].iter - (int)iter);
+                        if(diff < closestDiff) {
+                            closestDiff = diff;
+                            closestIndex = i;
+                        }
+                    }
+
+                    std::cout << chars[closestIndex];
                 }
             }
         }
