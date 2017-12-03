@@ -60,7 +60,7 @@ bool ImageWriter::writePNG(const Image &im, std::string filename) {
 
     png_init_io(writeStruct, fp);
 
-    png_set_IHDR(writeStruct, infoStruct, im.width, im.height, 8,
+    png_set_IHDR(writeStruct, infoStruct, im.width, im.height, sizeof(channel_t) * 8,
             PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
             PNG_FILTER_TYPE_DEFAULT);
 

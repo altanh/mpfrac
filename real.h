@@ -57,6 +57,7 @@ public:
     double toDouble() const;
 
     void print(mpfr_prec_t prec) const;
+    std::string toString(mpfr_prec_t prec) const;
 };
 
 #endif

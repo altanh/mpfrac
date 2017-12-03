@@ -2,7 +2,10 @@
 #define MANDELBROT_H
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <vector>
+#include <chrono>
 #include <thread>
 
 #include "complex.h"
@@ -34,11 +37,14 @@ public:
     Mandelbrot(unsigned int width, unsigned int height, 
                Viewport view, unsigned int iterMax);
 
-    static Mandelbrot fromIStream(std::istream &is);
+    void readIStream(std::istream &is);
 
     ~Mandelbrot();
 
     void run(unsigned int threadCount = 1);
+
+    bool writeRaw(std::string filename) const;
+    bool readRaw(std::string filename);
 
     void setViewport(Viewport view);
     const Viewport& getViewport() const;
@@ -54,6 +60,8 @@ public:
 
     const MandelbrotData* getData() const;
     const MandelbrotData& getDataAt(unsigned int x, unsigned int y) const;
+
+    void print() const;
 };
 
 #endif

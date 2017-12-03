@@ -184,3 +184,15 @@ double Real::toDouble() const {
 void Real::print(mpfr_prec_t prec) const {
     mpfr_printf(std::string("%." + std::to_string(prec) + "Rf").c_str(), _val);
 }
+
+std::string Real::toString(mpfr_prec_t prec) const {
+    char *buffer = new char[prec + 4]; // don't ask why
+
+    mpfr_snprintf(buffer, prec + 4, std::string("%." + std::to_string(prec) + "Rf").c_str(), _val);
+
+    std::string result(buffer);
+
+    delete[] buffer;
+
+    return result;
+}

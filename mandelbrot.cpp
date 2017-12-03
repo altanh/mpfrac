@@ -10,47 +10,88 @@ Mandelbrot::Mandelbrot(unsigned int width, unsigned int height,
 
 }
 
-Mandelbrot Mandelbrot::fromIStream(std::istream &is) {
+void Mandelbrot::readIStream(std::istream &is) {
     const bool isCin = &is == &std::cin;
 
-    unsigned int width, height, iterMax;
     std::string viewRe, viewIm, viewWidth, viewHeight;
 
-    std::cout << "\twidth: ";
-    is >> width;
-    if(!isCin) std::cout << width << std::endl;
+    std::cout << "\twidth = ";
+    is >> _width;
+    if(!isCin) std::cout << _width << std::endl;
 
-    std::cout << "\theight: ";
-    is >> height;
-    if(!isCin) std::cout << height << std::endl;
+    std::cout << "\theight = ";
+    is >> _height;
+    if(!isCin) std::cout << _height << std::endl;
 
-    std::cout << "\titerMax: ";
-    is >> iterMax;
-    if(!isCin) std::cout << iterMax << std::endl;
+    std::cout << "\titerMax = ";
+    is >> _iterMax;
+    if(!isCin) std::cout << _iterMax << std::endl;
 
-    std::cout << "\tviewport: " << std::endl << "\t\tre: ";
+    std::cout << "\tviewport: " << std::endl << "\t\tre = ";
     is >> viewRe;
     if(!isCin) std::cout << viewRe << std::endl;
 
-    std::cout << "\t\tim: ";
+    std::cout << "\t\tim = ";
     is >> viewIm;
     if(!isCin) std::cout << viewIm << std::endl;
 
-    std::cout << "\t\twidth: ";
+    std::cout << "\t\twidth = ";
     is >> viewWidth;
     if(!isCin) std::cout << viewWidth << std::endl;
 
-    std::cout << "\t\theight: ";
+    std::cout << "\t\theight = ";
     is >> viewHeight;
     if(!isCin) std::cout << viewHeight << std::endl;
 
-    return Mandelbrot(width, height, 
-            {{Real(viewRe), Real(viewIm)}, {Real(viewWidth), Real(viewHeight)}}, iterMax);
+    _viewport.topLeft.re = Real(viewRe);
+    _viewport.topLeft.im = Real(viewIm);
+    _viewport.size.re = Real(viewWidth);
+    _viewport.size.im = Real(viewHeight);
 }
 
 Mandelbrot::~Mandelbrot() {
     if(_data)
         delete[] _data;
+}
+
+bool Mandelbrot::writeRaw(std::string filename) const {
+    std::ofstream file(filename.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+    if(!file.is_open()) return false;
+
+    file << _width << "\n";
+    file << _height << "\n";
+    file << _iterMax << "\n";
+    file << _viewport.topLeft.re.toString(_viewport.topLeft.re.getPrecision()) << "\n";
+    file << _viewport.topLeft.im.toString(_viewport.topLeft.im.getPrecision()) << "\n";
+    file << _viewport.size.re.toString(_viewport.size.re.getPrecision()) << "\n";
+    file << _viewport.size.im.toString(_viewport.size.im.getPrecision()) << "\n";
+    file.write((char*)_data, sizeof(MandelbrotData) * _width * _height);
+
+    file.close();
+
+    return true;
+}
+
+bool Mandelbrot::readRaw(std::string filename) {
+    std::ifstream file(filename.c_str(), std::ios::in | std::ios::binary);
+    if(!file.is_open()) return false;
+
+    std::string header[7];
+    for(unsigned int i = 0; i < 7; ++i) {
+        std::getline(file, header[i]);
+    }
+
+    std::stringstream(header[0]) >> _width;
+    std::stringstream(header[1]) >> _height;
+    std::stringstream(header[2]) >> _iterMax;
+    _viewport.topLeft = Complex(Real(header[3]), Real(header[4]));
+    _viewport.size = Complex(Real(header[5]), Real(header[6]));
+
+    _data = new MandelbrotData[_width * _height];
+
+    file.read((char*) _data, sizeof(MandelbrotData) * _width * _height);
+
+    return true;
 }
 
 void Mandelbrot::_runChunk(Mandelbrot *m, unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
@@ -95,6 +136,8 @@ void Mandelbrot::run(unsigned int threadCount) {
     std::cout << "\tchunkHeight = " << chunkHeight << std::endl
               << "\tchunkRemainder = " << chunkRemainder << std::endl;
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     for(unsigned int i = 0; i < threadCount; ++i) {
         if(i == threadCount - 1) {
             threads.emplace_back(_runChunk, this, 0, i * chunkHeight, _width, chunkHeight + chunkRemainder);
@@ -106,6 +149,9 @@ void Mandelbrot::run(unsigned int threadCount) {
     for(unsigned int i = 0; i < threadCount; ++i) {
         threads[i].join();
     }
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::cout << "Took " << std::chrono::duration_cast<std::chrono::seconds>(finish - start).count() << " seconds" << std::endl;
 }
 
 void Mandelbrot::setViewport(Viewport view) {
@@ -146,4 +192,15 @@ const MandelbrotData* Mandelbrot::getData() const {
 
 const MandelbrotData& Mandelbrot::getDataAt(unsigned int x, unsigned int y) const {
     return _data[y * _width + x];
+}
+
+void Mandelbrot::print() const {
+    std::cout << "\twidth = " << _width << std::endl
+              << "\theight = " << _height << std::endl
+              << "\titerMax = " << _iterMax << std::endl
+              << "\tviewport: " << std::endl
+              << "\t\tre = " << _viewport.topLeft.re.toString(_viewport.topLeft.re.getPrecision()) << std::endl
+              << "\t\tim = " << _viewport.topLeft.im.toString(_viewport.topLeft.im.getPrecision()) << std::endl
+              << "\t\twidth = " << _viewport.size.re.toString(_viewport.size.re.getPrecision()) << std::endl
+              << "\t\theight = " << _viewport.size.im.toString(_viewport.size.im.getPrecision()) << std::endl;
 }
