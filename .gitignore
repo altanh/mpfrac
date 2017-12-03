@@ -1,4 +1,5 @@
 mpfrac
 mpfrac.dSYM
 *.frac
+*.exe
 .DS_Store

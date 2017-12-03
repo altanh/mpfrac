@@ -120,9 +120,9 @@ int main(int argc, char **argv) {
 
         for(unsigned int j = 0; j < mandel.getHeight(); ++j) {
             for(unsigned int i = 0; i < mandel.getWidth(); ++i) {
-                outputImage.pixels[j * mandel.getWidth() + i].data[0] = mandel.getDataAt(i,j).inSet ? 255 : (255 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
-                outputImage.pixels[j * mandel.getWidth() + i].data[1] = mandel.getDataAt(i,j).inSet ? 0 : (255 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
-                outputImage.pixels[j * mandel.getWidth() + i].data[2] = 0;
+                outputImage.pixels[j * mandel.getWidth() + i].data[0] = mandel.getDataAt(i,j).inSet ? 0 : (255 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
+                outputImage.pixels[j * mandel.getWidth() + i].data[1] = mandel.getDataAt(i,j).inSet ? 0 : (96 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
+                outputImage.pixels[j * mandel.getWidth() + i].data[2] = 0;//mandel.getDataAt(i,j).inSet ? 0 : (255 - 255 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
             }
         }
 
