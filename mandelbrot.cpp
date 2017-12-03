@@ -148,10 +148,11 @@ void Mandelbrot::run(unsigned int threadCount) {
 
     for(unsigned int i = 0; i < threadCount; ++i) {
         threads[i].join();
+        std::cout << "-> thread " << i + 1 << " completed" << std::endl;
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
-    std::cout << "Took " << std::chrono::duration_cast<std::chrono::seconds>(finish - start).count() << " seconds" << std::endl;
+    std::cout << "[took " << std::chrono::duration_cast<std::chrono::seconds>(finish - start).count() << " seconds]" << std::endl;
 }
 
 void Mandelbrot::setViewport(Viewport view) {

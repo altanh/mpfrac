@@ -24,6 +24,54 @@ void printHelp() {
               << "\t-h\t\tPrints this help message." << std::endl;
 }
 
+const double valMax = std::pow(2, sizeof(channel_t) * 8) - 1.0;
+
+channel_t sineCurve(unsigned int k, unsigned int iterMax) {
+    const double PI2 = 3.14159265357989 / 2.0;
+    double frac = std::sin(PI2 * (double) k / (double) iterMax);
+
+    return (channel_t) (valMax * frac);
+}
+
+channel_t logCurve(unsigned int k, unsigned int iterMax) {
+    const double em = 1.718281828459045;
+    double frac = std::log(1.0 + em * (double) k / (double) iterMax);
+
+    return (channel_t) (valMax * frac);
+}
+
+channel_t sqrtCurve(unsigned int k, unsigned int iterMax) {
+    double frac = std::sqrt((double) k / (double) iterMax);
+
+    return (channel_t) (valMax * frac);
+}
+
+Image genImage(const Mandelbrot &m) {
+    Image im(m.getWidth(), m.getHeight());
+
+    Pixel *palette = new Pixel[m.getIterMax() + 1];
+
+    for(unsigned int k = 0; k < m.getIterMax(); ++k) {
+        palette[k].data[0] = logCurve(k * k, m.getIterMax() * m.getIterMax());
+        palette[k].data[1] = sineCurve(k, m.getIterMax());//logCurve(k, m.getIterMax());
+        palette[k].data[2] = sqrtCurve(k, m.getIterMax()) / 2;//sineCurve(k, m.getIterMax()) / 3;
+    }
+
+    palette[m.getIterMax()].data[0] = 255;
+    palette[m.getIterMax()].data[1] = 255;
+    palette[m.getIterMax()].data[2] = 255;
+
+    for(unsigned int j = 0; j < m.getHeight(); ++j) {
+        for(unsigned int i = 0; i < m.getWidth(); ++i) {
+            im.pixels[j * m.getWidth() + i] = palette[m.getDataAt(i,j).inSet ? m.getIterMax() : m.getDataAt(i,j).iter];
+        }
+    }
+
+    delete[] palette;
+
+    return im;
+}
+
 int main(int argc, char **argv) {
     std::string params, rawOut, rawIn, pngOut;
     bool rendering = false;
@@ -58,7 +106,6 @@ int main(int argc, char **argv) {
                 printHelp();
                 return 0;
             default:
-                //std::cerr << "error: unknown command-line option \'" << (char)c << "\'" << std::endl;
                 return -1;
         }
     }
@@ -116,15 +163,7 @@ int main(int argc, char **argv) {
     }
 
     if(!pngOut.empty()) {
-        Image outputImage(mandel.getWidth(), mandel.getHeight());
-
-        for(unsigned int j = 0; j < mandel.getHeight(); ++j) {
-            for(unsigned int i = 0; i < mandel.getWidth(); ++i) {
-                outputImage.pixels[j * mandel.getWidth() + i].data[0] = mandel.getDataAt(i,j).inSet ? 0 : (255 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
-                outputImage.pixels[j * mandel.getWidth() + i].data[1] = mandel.getDataAt(i,j).inSet ? 0 : (96 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
-                outputImage.pixels[j * mandel.getWidth() + i].data[2] = 0;//mandel.getDataAt(i,j).inSet ? 0 : (255 - 255 * mandel.getDataAt(i,j).iter / mandel.getIterMax());
-            }
-        }
+        Image outputImage = genImage(mandel);
 
         std::cout << "-- writing PNG to \"" << pngOut << "\"" << std::endl;
         if(!ImageWriter::writePNG(outputImage, pngOut)) {
