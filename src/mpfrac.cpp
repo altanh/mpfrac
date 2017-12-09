@@ -57,9 +57,9 @@ Image genImage(const Mandelbrot &m) {
         palette[k].data[2] = sqrtCurve(k, m.getIterMax()) / 2;//sineCurve(k, m.getIterMax()) / 3;
     }
 
-    palette[m.getIterMax()].data[0] = 255;
-    palette[m.getIterMax()].data[1] = 255;
-    palette[m.getIterMax()].data[2] = 255;
+    palette[m.getIterMax()].data[0] = 0;
+    palette[m.getIterMax()].data[1] = 0;
+    palette[m.getIterMax()].data[2] = 0;
 
     for(unsigned int j = 0; j < m.getHeight(); ++j) {
         for(unsigned int i = 0; i < m.getWidth(); ++i) {

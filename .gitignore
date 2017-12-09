@@ -1,5 +1,7 @@
 mpfrac
 mpfrac.dSYM
+mpfrac-gui
+mpfrac-gui.dSYM
 *.frac
 *.exe
 .DS_Store
