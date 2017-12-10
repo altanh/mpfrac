@@ -23,6 +23,8 @@ public:
 
     ~Real();
 
+    const mpfr_t &getVal() const;
+
     mpfr_prec_t getPrecision() const;
     void setPrecision(mpfr_prec_t prec);
 

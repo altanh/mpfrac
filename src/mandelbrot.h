@@ -31,7 +31,7 @@ class Mandelbrot {
     Viewport _viewport;
 
     static void _runChunk(Mandelbrot *m, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
-
+    static void _runChunkFast(Mandelbrot *m, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
 public:
     Mandelbrot();
     Mandelbrot(unsigned int width, unsigned int height, 

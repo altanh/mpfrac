@@ -35,6 +35,10 @@ Real::~Real() {
     mpfr_clear(_val);
 }
 
+const mpfr_t &Real::getVal() const {
+    return _val;
+}
+
 mpfr_prec_t Real::getPrecision() const {
     return mpfr_get_prec(_val);
 }

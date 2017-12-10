@@ -121,6 +121,61 @@ void Mandelbrot::_runChunk(Mandelbrot *m, unsigned int x, unsigned int y, unsign
     }
 }
 
+void Mandelbrot::_runChunkFast(Mandelbrot *m, unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
+    const Real FOUR("4");
+    const Real DELTA_RE = m->_viewport.size.re / Real(m->_width);
+    const Real DELTA_IM = m->_viewport.size.im / Real(m->_height);
+
+    mpfr_t cRe, cIm, iF, jF, zRe, zIm, a, b;
+    mpfr_init_set(cRe, m->_viewport.topLeft.re.getVal(), MPFR_RNDN);
+    mpfr_init_set(cIm, m->_viewport.topLeft.im.getVal(), MPFR_RNDN);
+    mpfr_inits(iF, jF, zRe, zIm, a, b, nullptr);
+
+    for(unsigned int j = y; j < height + y; ++j) {
+        for(unsigned int i = x; i < width + x; ++i) {
+            const unsigned int index = j * m->_width + i;
+            mpfr_set_ui(iF, i, MPFR_RNDN);
+            mpfr_set_ui(jF, j, MPFR_RNDN);
+            mpfr_set_ui(zRe, 0, MPFR_RNDN);
+            mpfr_set_ui(zIm, 0, MPFR_RNDN);
+
+            mpfr_mul(iF, iF, DELTA_RE.getVal(), MPFR_RNDN);
+            mpfr_mul(jF, jF, DELTA_IM.getVal(), MPFR_RNDN);
+
+            mpfr_add(cRe, cRe, iF, MPFR_RNDN);
+            mpfr_sub(cIm, cIm, jF, MPFR_RNDN);
+
+            m->_data[index].inSet = true;
+
+            for(unsigned int iter = 0; iter < m->_iterMax; ++iter) {
+                mpfr_pow_ui(a, zRe, 2, MPFR_RNDN);
+                mpfr_pow_ui(b, zIm, 2, MPFR_RNDN);
+
+                mpfr_sub(a, a, b, MPFR_RNDN);
+                mpfr_mul(b, zRe, zIm, MPFR_RNDN);
+
+                mpfr_add(zRe, a, cRe, MPFR_RNDN);
+                mpfr_mul_ui(zIm, b, 2, MPFR_RNDN);
+                mpfr_add(zIm, zIm, cIm, MPFR_RNDN);
+
+                mpfr_pow_ui(a, zRe, 2, MPFR_RNDN);
+                mpfr_pow_ui(b, zIm, 2, MPFR_RNDN);
+                mpfr_add(a, a, b, MPFR_RNDN);
+
+                if(mpfr_cmp(a, FOUR.getVal()) > 0) {
+                    m->_data[index].iter = iter;
+                    m->_data[index].inSet = false;
+                }
+            }
+
+            mpfr_set(cRe, m->_viewport.topLeft.re.getVal(), MPFR_RNDN);
+            mpfr_set(cIm, m->_viewport.topLeft.im.getVal(), MPFR_RNDN);
+        }
+    }
+
+    mpfr_clears(cRe, cIm, iF, jF, zRe, zIm, a, b, nullptr);
+}
+
 void Mandelbrot::run(unsigned int threadCount) {
     if(_data)
         delete[] _data;
@@ -140,9 +195,9 @@ void Mandelbrot::run(unsigned int threadCount) {
 
     for(unsigned int i = 0; i < threadCount; ++i) {
         if(i == threadCount - 1) {
-            threads.emplace_back(_runChunk, this, 0, i * chunkHeight, _width, chunkHeight + chunkRemainder);
+            threads.emplace_back(_runChunkFast, this, 0, i * chunkHeight, _width, chunkHeight + chunkRemainder);
         } else {
-            threads.emplace_back(_runChunk, this, 0, i * chunkHeight, _width, chunkHeight);
+            threads.emplace_back(_runChunkFast, this, 0, i * chunkHeight, _width, chunkHeight);
         }
     }
 
